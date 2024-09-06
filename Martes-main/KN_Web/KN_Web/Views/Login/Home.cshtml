@@ -1,0 +1,140 @@
+﻿@model List<KN_Web.BaseDatos.tProducto>
+
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Home";
+}
+
+<div class="row">
+    <div class="col-12">
+
+        @if (ViewBag.msj != null)
+        {
+            <div class="alert alert-info" role="alert" style="text-align:center">
+                @ViewBag.msj
+            </div>
+        }
+
+        <div class="row">
+
+            @foreach (var item in Model)
+            {
+                <div class="col-lg-4 col-md-6 col-sm-12" style="margin-bottom:20px">
+                    <div class="card">
+                        <div style="text-align:center">
+                            <img class="card-img-top" src="@item.Imagen" style="width: 200px; height:150px; margin-top:20px">
+                        </div>
+                        <div class="card-body">
+
+
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item"> <h5 class="card-title">@item.Descripcion</h5></li>
+                                <li class="list-group-item">Categoría: @item.tCategoria.Descripcion</li>
+                                <li class="list-group-item">Inventario: @item.Inventario</li>
+                                <li class="list-group-item">Precio: ¢ @item.Precio.ToString("N2")</li>
+                            </ul>
+
+                            @if (item.Inventario > 0)
+                            {
+                                <div class="card-body row">
+                                    <div class="col-2">
+                                    </div>
+                                    <div class="col-3">
+                                        <input id=prd-@item.IdProducto type="number" class="form-control" style="text-align:center" value="0" min="1" max="@item.Inventario"
+                                               onkeypress="return ValidarNumeros(this.id)">
+                                    </div>
+                                    <div class="col-5">
+                                        <a onclick="AgregarProducto(@item.IdProducto, @item.Inventario);" class="card-link btn btn-outline-primary">Añadir</a>
+                                    </div>
+                                </div>
+                            }
+                            else
+                            { 
+                                <div class="card-body row">
+                                    <div class="col-4">
+                                    </div>
+                                    <div class="col-4">
+                                        <div style="">
+                                            <p class="card-link" style="font-size:12pt;color:red;font-weight:bold">Agotado</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+
+
+                        </div>
+                    </div>
+                </div>
+            }
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+
+    function ValidarNumeros(evt) {
+        var charCode = (evt.which) ? evt.which : event.keyCode;
+
+        if (charCode >= 48 && charCode <= 57) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    function AgregarProducto(IdProducto, Inventario) {
+
+        let cantidadIngresada = $("#prd-" + IdProducto).val();
+
+        if (cantidadIngresada > Inventario) {
+            MostrarMensaje("Información","Debe ingresar una cantidad inferior al inventario","info");
+            return;
+        }
+
+        if (cantidadIngresada <= 0) {
+            MostrarMensaje("Información", "Debe ingresar una cantidad válida", "info");
+            return;
+        }
+
+        $.ajax({
+            type: 'POST',
+            url: '/Login/RegistrarCarrito',
+            dataType: 'json',
+            data: {
+                "IdProducto": IdProducto,
+                "Cantidad": cantidadIngresada
+            },
+            success: function (data) {
+                MostrarMensaje("Información", "Producto añadido correctamente", "success");
+
+            }
+        });
+
+    }
+
+    function MostrarMensaje(titulo, mensaje, icono) {
+        //Swal.fire({
+        //    title: titulo,
+        //    text: mensaje,
+        //    icon: icono
+        //});
+
+        Swal.fire({
+            title: titulo,
+            showDenyButton: false,
+            showCancelButton: false,
+            confirmButtonText: "Aceptar",
+            text: mensaje,
+            icon: icono
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/Login/Home';
+            }
+        });
+
+    }
+
+</script>
